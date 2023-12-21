@@ -1,17 +1,35 @@
-export type BinarySearchResult =
+export type SearchResult =
 	| { found: number; closest?: undefined }
 	| { found?: undefined; closest: number }
 
-/** `closest` is the closest index that doesn't exceed. */
-export function binarySearch<T>(
+const identity = (x) => x
+const compare = (a, b) => (a === b ? 0 : a > b ? 1 : -1)
+
+export function orderedArray<T, K = T>(
+	getKey: (item: T) => K,
+	compareKey: (a: K, b: K) => number = compare
+) {
+	return {
+		search: (list: Array<T>, key: K) => search(list, key, getKey, compareKey),
+		insert: (list: Array<T>, item: T) => insert(list, item, getKey, compareKey),
+		// prettier-ignore
+		update: (list: Array<T>, key: K, fn: (existing: T | undefined) => T | undefined | void) =>
+			update(list, key, fn, getKey, compareKey),
+		remove: (list: Array<T>, key: K) => remove(list, key, getKey, compareKey),
+	}
+}
+
+export function search<T, K = T>(
 	list: Array<T>,
-	compare: (a: T) => number
-): BinarySearchResult {
+	key: K,
+	getKey: (item: T) => K = identity,
+	compareKey: (a: K, b: K) => number = compare
+): SearchResult {
 	var min = 0
 	var max = list.length - 1
 	while (min <= max) {
 		var k = (max + min) >> 1
-		var dir = compare(list[k]) * -1
+		var dir = compareKey(getKey(list[k]), key) * -1
 		if (dir > 0) {
 			min = k + 1
 		} else if (dir < 0) {
@@ -23,49 +41,64 @@ export function binarySearch<T>(
 	return { closest: min }
 }
 
-export function insert<T>(
-	value: T,
+export function insert<T, K = T>(
 	list: Array<T>,
-	compare: (a: T, b: T) => number
+	item: T,
+	getKey: (item: T) => K = identity,
+	compareKey: (a: K, b: K) => number = compare
 ): T | undefined {
-	const result = binarySearch(list, (item) => compare(item, value))
+	const result = search(list, getKey(item), getKey, compareKey)
 	if (result.found !== undefined) {
 		// Replace the whole item.
-		const [old] = list.splice(result.found, 1, value)
-		return old
+		const [oldItem] = list.splice(result.found, 1, item)
+		return oldItem
 	} else {
 		// Insert at missing index.
-		list.splice(result.closest, 0, value)
+		list.splice(result.closest, 0, item)
 	}
 }
 
-/**
- * Careful not to change the order!
- * If update returns undefined, the item is removed.
- */
-export function update<T>(
+export function update<T, K = T>(
 	list: Array<T>,
-	compare: (a: T) => number,
-	update: (existing?: T) => T | undefined
-) {
-	const result = binarySearch(list, compare)
+	key: K,
+	fn: (existing: T | undefined) => T | undefined | void,
+	getKey: (item: T) => K = identity,
+	compareKey: (a: K, b: K) => number = compare
+): T | undefined {
+	const result = search(list, key, getKey, compareKey)
 	if (result.found !== undefined) {
-		// Replace the whole item.
-		const newItem = update(list[result.found])
-		if (newItem === undefined) list.splice(result.found, 1)
-		else list.splice(result.found, 1, newItem)
+		const newItem = fn(list[result.found])
+		if (newItem === undefined) {
+			// Delete the item.
+			const [oldItem] = list.splice(result.found, 1)
+			return oldItem
+		} else {
+			if (compareKey(getKey(newItem), key) !== 0)
+				throw new Error("Key should never change during update()")
+			const [oldItem] = list.splice(result.found, 1, newItem)
+			return oldItem
+		}
 	} else {
 		// Insert at missing index.
-		const newItem = update()
-		if (newItem !== undefined) list.splice(result.closest, 0, newItem)
+		const newItem = fn(undefined)
+		if (newItem !== undefined) {
+			if (compareKey(getKey(newItem), key) !== 0)
+				throw new Error("New item does not have the correct key.")
+			list.splice(result.closest, 0, newItem)
+		}
 	}
 }
 
-export function remove<T>(list: T[], compare: (a: T) => number): T | undefined {
-	let { found } = binarySearch(list, compare)
+export function remove<T, K = T>(
+	list: T[],
+	key: K,
+	getKey: (item: T) => K = identity,
+	compareKey: (a: K, b: K) => number = compare
+): T | undefined {
+	let { found } = search(list, key, getKey, compareKey)
 	if (found !== undefined) {
 		// Remove from index.
-		const [old] = list.splice(found, 1)
-		return old
+		const [oldItem] = list.splice(found, 1)
+		return oldItem
 	}
 }
