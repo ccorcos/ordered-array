@@ -1,6 +1,6 @@
 {
 	"name": "@ccorcos/ordered-array",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"description": "Utilities for working with ordered arrays efficiently using binary search.",
 	"repository": {
 		"url": "https://github.com/ccorcos/ordered-array"
