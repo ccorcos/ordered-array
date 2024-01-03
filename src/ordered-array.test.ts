@@ -1,6 +1,12 @@
 import { strict as assert } from "assert"
 import { describe, it } from "mocha"
-import { orderedArray } from "./ordered-array"
+import {
+	insertAfter,
+	insertBefore,
+	orderedArray,
+	searchFirst,
+	searchLast,
+} from "./ordered-array"
 
 describe("ordered array", () => {
 	const { search, insert, update, remove } = orderedArray<
@@ -173,6 +179,104 @@ describe("ordered array", () => {
 				assert.deepEqual(aa, bb)
 			}
 		}
+	})
+
+	it("searchLast", () => {
+		const log = [
+			{ key: 1, value: 1 },
+			{ key: 2, value: 1 },
+			{ key: 3, value: 1 },
+		]
+		{
+			const result = searchLast(log, 2, ({ key }) => key)
+			log.splice(result.found! + 1, 0, { key: 2, value: 2 })
+		}
+		{
+			const result = searchLast(log, 2, ({ key }) => key)
+			log.splice(result.found! + 1, 0, { key: 2, value: 3 })
+		}
+		{
+			const result = searchLast(log, 3, ({ key }) => key)
+			log.splice(result.found! + 1, 0, { key: 3, value: 2 })
+		}
+
+		assert.deepEqual(log, [
+			{ key: 1, value: 1 },
+			{ key: 2, value: 1 },
+			{ key: 2, value: 2 },
+			{ key: 2, value: 3 },
+			{ key: 3, value: 1 },
+			{ key: 3, value: 2 },
+		])
+	})
+
+	it("insertAfter", () => {
+		const log = [
+			{ key: 1, value: 1 },
+			{ key: 2, value: 1 },
+			{ key: 3, value: 1 },
+		]
+		insertAfter(log, { key: 2, value: 2 }, ({ key }) => key)
+		insertAfter(log, { key: 2, value: 3 }, ({ key }) => key)
+		insertAfter(log, { key: 3, value: 2 }, ({ key }) => key)
+
+		assert.deepEqual(log, [
+			{ key: 1, value: 1 },
+			{ key: 2, value: 1 },
+			{ key: 2, value: 2 },
+			{ key: 2, value: 3 },
+			{ key: 3, value: 1 },
+			{ key: 3, value: 2 },
+		])
+	})
+
+	it("searchLast", () => {
+		const log = [
+			{ key: 1, value: 1 },
+			{ key: 2, value: 1 },
+			{ key: 3, value: 1 },
+		]
+		{
+			const result = searchFirst(log, 2, ({ key }) => key)
+			log.splice(result.found!, 0, { key: 2, value: 2 })
+		}
+		{
+			const result = searchFirst(log, 2, ({ key }) => key)
+			log.splice(result.found!, 0, { key: 2, value: 3 })
+		}
+		{
+			const result = searchFirst(log, 3, ({ key }) => key)
+			log.splice(result.found!, 0, { key: 3, value: 2 })
+		}
+
+		assert.deepEqual(log, [
+			{ key: 1, value: 1 },
+			{ key: 2, value: 3 },
+			{ key: 2, value: 2 },
+			{ key: 2, value: 1 },
+			{ key: 3, value: 2 },
+			{ key: 3, value: 1 },
+		])
+	})
+
+	it("insertBefore", () => {
+		const log = [
+			{ key: 1, value: 1 },
+			{ key: 2, value: 1 },
+			{ key: 3, value: 1 },
+		]
+		insertBefore(log, { key: 2, value: 2 }, ({ key }) => key)
+		insertBefore(log, { key: 2, value: 3 }, ({ key }) => key)
+		insertBefore(log, { key: 3, value: 2 }, ({ key }) => key)
+
+		assert.deepEqual(log, [
+			{ key: 1, value: 1 },
+			{ key: 2, value: 3 },
+			{ key: 2, value: 2 },
+			{ key: 2, value: 1 },
+			{ key: 3, value: 2 },
+			{ key: 3, value: 1 },
+		])
 	})
 
 	it("generic types", () => {
