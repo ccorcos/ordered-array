@@ -174,6 +174,18 @@ describe("ordered array", () => {
 			}
 		}
 	})
+
+	it("generic types", () => {
+		const { search, insert, update, remove } = orderedArray(
+			(item: { key: number }) => item.key
+		)
+
+		const list1: { key: number; value: string }[] = []
+		const list2: { key: number; id: string; value: number }[] = []
+
+		insert(list1, { key: 1, value: "" })
+		insert(list2, { key: 1, value: 2, id: "" })
+	})
 })
 
 const randomNumbers = (n: number) =>

@@ -10,12 +10,15 @@ export function orderedArray<T, K = T>(
 	compareKey: (a: K, b: K) => number = compare
 ) {
 	return {
-		search: (list: Array<T>, key: K) => search(list, key, getKey, compareKey),
-		insert: (list: Array<T>, item: T) => insert(list, item, getKey, compareKey),
+		search: <I extends T>(list: Array<I>, key: K) =>
+			search(list, key, getKey, compareKey),
+		insert: <I extends T>(list: Array<I>, item: I) =>
+			insert(list, item, getKey, compareKey),
 		// prettier-ignore
-		update: (list: Array<T>, key: K, fn: (existing: T | undefined) => T | undefined | void) =>
+		update: <I extends T>(list: Array<I>, key: K, fn: (existing: I | undefined) => I | undefined | void) =>
 			update(list, key, fn, getKey, compareKey),
-		remove: (list: Array<T>, key: K) => remove(list, key, getKey, compareKey),
+		remove: <I extends T>(list: Array<I>, key: K) =>
+			remove(list, key, getKey, compareKey),
 	}
 }
 
@@ -41,6 +44,7 @@ export function search<T, K = T>(
 	return { closest: min }
 }
 
+/** Replaces item with the same key. */
 export function insert<T, K = T>(
 	list: Array<T>,
 	item: T,
